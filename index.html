@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gutta World</title>
+  <style>
+    :root { --accent:#faa526; --white:#f2f2f2; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#000; font-family:Arial, Helvetica, sans-serif; color:#fff; }
+    .bg-video { position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; filter:blur(1.4px) grayscale(.08) brightness(.62) contrast(1.08); transform:scale(1.035); }
+    .shade { position:fixed; inset:0; z-index:1; background:radial-gradient(circle at center, rgba(0,0,0,.16) 0%, rgba(0,0,0,.48) 48%, rgba(0,0,0,.88) 100%), rgba(0,0,0,.22); }
+    .dots { position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.42; background-image:radial-gradient(rgba(250,165,38,.42) 1px, transparent 1px); background-size:14px 14px; }
+    .wrap { position:relative; z-index:5; min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding-top:30px; }
+    .content { width:min(760px, 92vw); transform:translateY(-6px); }
+    .logo{
+      width:260px; max-width:44vw; display:block; margin:0 auto 34px;
+      background:transparent!important; mix-blend-mode:normal;
+      image-rendering:auto;
+      filter:drop-shadow(0 0 2px rgba(255,255,255,.95)) drop-shadow(0 0 8px rgba(255,255,255,.55)) drop-shadow(0 8px 18px rgba(0,0,0,.9));
+      transform:translateZ(0); backface-visibility:hidden;
+    }
+    .coming { color:var(--accent); letter-spacing:9px; font-size:12px; font-weight:700; margin-bottom:28px; }
+    .timer { display:flex; align-items:flex-start; justify-content:center; gap:24px; margin-bottom:18px; }
+    .unit { min-width:105px; }
+    .num { font-weight:300; font-size:56px; line-height:.95; letter-spacing:2px; color:rgba(255,255,255,.9); text-shadow:0 3px 18px rgba(0,0,0,.7); }
+    .label { margin-top:13px; font-size:9px; font-weight:700; letter-spacing:4px; color:rgba(255,255,255,.6); }
+    .sep { color:var(--accent); font-size:43px; line-height:.9; font-weight:300; transform:translateY(5px); opacity:.9; }
+    .time-line { font-size:10px; letter-spacing:4px; font-weight:700; color:rgba(255,255,255,.72); }
+    .time-line .orange { color:var(--accent); }
+    .footer { position:fixed; left:0; right:0; bottom:29px; z-index:6; text-align:center; font-size:10px; letter-spacing:2px; font-weight:700; color:rgba(255,255,255,.64); }
+    .footer span { margin:0 18px; color:rgba(255,255,255,.25); }
+    .sound { position:fixed; right:22px; bottom:21px; z-index:8; border:1px solid rgba(250,165,38,.9); border-radius:999px; background:rgba(0,0,0,.45); color:var(--accent); font-weight:800; font-size:10px; letter-spacing:2px; padding:10px 18px; cursor:pointer; box-shadow:0 0 18px rgba(250,165,38,.12); }
+    .sound:hover { background:rgba(250,165,38,.1); }
+    .song-note { position:fixed; left:22px; bottom:21px; z-index:8; color:rgba(255,255,255,.45); font-size:9px; letter-spacing:2px; font-weight:700; }
+    @media (max-width: 700px) {
+      .content { transform:translateY(-25px); } .logo{width:220px;max-width:62vw;margin-bottom:30px;}
+      .coming{font-size:10px;letter-spacing:6px;margin-bottom:24px;}
+      .timer{gap:12px;} .unit{min-width:74px;} .num{font-size:42px;} .label{font-size:8px;letter-spacing:2px;}
+      .sep{font-size:32px;} .footer{font-size:8px; bottom:18px;} .footer span{margin:0 8px;}
+      .sound{right:12px;bottom:48px;font-size:8px;padding:8px 12px;} .song-note{display:none;}
+    }
+  </style>
+</head>
+<body>
+  <video id="bgVideo" class="bg-video" autoplay muted playsinline preload="auto"></video>
+  <div class="shade"></div>
+  <div class="dots"></div>
+
+  <main class="wrap">
+    <section class="content">
+      <img class="logo" src="logo.png" alt="Gutta World">
+      <div class="coming">COMING SOON</div>
+      <div class="timer">
+        <div class="unit"><div id="hours" class="num">00</div><div class="label">HOURS</div></div>
+        <div class="sep">:</div>
+        <div class="unit"><div id="minutes" class="num">00</div><div class="label">MINUTES</div></div>
+        <div class="sep">:</div>
+        <div class="unit"><div id="seconds" class="num">00</div><div class="label">SECONDS</div></div>
+      </div>
+      <div class="time-line"><span id="ampm" class="orange">PM</span> · CHICAGO · CENTRAL TIME</div>
+    </section>
+  </main>
+
+  <footer class="footer">GUTTA WORLD <span>|</span> TEXT ROLEPLAY <span>|</span> DISCORD.GG/GUTTAWORLD</footer>
+  <div id="songNote" class="song-note">TRACK 1</div>
+  <button id="soundBtn" class="sound">◂ TAP FOR SOUND</button>
+
+  <script src="config.js"></script>
+  <script>
+    const cfg = window.GUTTA_CONFIG || {};
+    const launchDate = new Date(cfg.launchDate || '2026-07-01T20:00:00-05:00').getTime();
+    const h = document.getElementById('hours'), m = document.getElementById('minutes'), s = document.getElementById('seconds');
+    const ampm = document.getElementById('ampm');
+    const video = document.getElementById('bgVideo');
+    const btn = document.getElementById('soundBtn');
+    const songNote = document.getElementById('songNote');
+
+    const playlist = Array.isArray(cfg.videoPlaylist) && cfg.videoPlaylist.length ? cfg.videoPlaylist : [
+      'https://r2.fivemanage.com/DO9KoRL23hOK71rF7NFU8/lovesosa.mp4'
+    ];
+    let currentTrack = cfg.randomStart ? Math.floor(Math.random() * playlist.length) : 0;
+
+    function two(n){ return String(n).padStart(2,'0'); }
+    function tick(){
+      const chicago = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+      ampm.textContent = chicago.getHours() >= 12 ? 'PM' : 'AM';
+      let diff = Math.max(0, launchDate - Date.now());
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSeconds / 3600) % 100;
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      h.textContent = two(hours); m.textContent = two(minutes); s.textContent = two(seconds);
+    }
+
+    function loadTrack(index){
+      currentTrack = (index + playlist.length) % playlist.length;
+      video.src = playlist[currentTrack];
+      video.muted = cfg.startMuted !== false ? video.muted : false;
+      if (songNote) songNote.textContent = `TRACK ${currentTrack + 1} / ${playlist.length}`;
+      video.load();
+      video.play().catch(()=>{});
+    }
+
+    video.addEventListener('ended', () => loadTrack(currentTrack + 1));
+    video.addEventListener('error', () => {
+      console.warn('Video failed, skipping:', playlist[currentTrack]);
+      if (playlist.length > 1) loadTrack(currentTrack + 1);
+    });
+
+    btn.addEventListener('click', () => {
+      video.muted = !video.muted;
+      video.play().catch(()=>{});
+      btn.textContent = video.muted ? '◂ TAP FOR SOUND' : '◂ SOUND ON';
+    });
+
+    tick(); setInterval(tick, 1000);
+    loadTrack(currentTrack);
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+const cfg = window.GUTTA_CONFIG || {};
+const video = document.getElementById('bgVideo');
+const soundBtn = document.getElementById('soundBtn');
+const hoursEl = document.getElementById('hours');
+const minutesEl = document.getElementById('minutes');
+const secondsEl = document.getElementById('seconds');
+const ampmEl = document.getElementById('ampm');
+
+if (video && cfg.videoFile) {
+  const source = video.querySelector('source');
+  source.src = cfg.videoFile;
+  video.load();
+  video.play().catch(() => {});
+}
+
+function pad(n) { return String(Math.max(0, n)).padStart(2, '0'); }
+
+function updateCountdown() {
+  const launch = new Date(cfg.launchDate || '2026-07-01T20:00:00-05:00').getTime();
+  let diff = Math.max(0, Math.floor((launch - Date.now()) / 1000));
+  const hoursTotal = Math.floor(diff / 3600);
+  const minutes = Math.floor((diff % 3600) / 60);
+  const seconds = diff % 60;
+  hoursEl.textContent = pad(hoursTotal);
+  minutesEl.textContent = pad(minutes);
+  secondsEl.textContent = pad(seconds);
+}
+
+function updateChicagoAMPM() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago', hour: 'numeric', hour12: true
+  }).formatToParts(new Date());
+  const dayPeriod = parts.find(p => p.type === 'dayPeriod');
+  ampmEl.textContent = dayPeriod ? dayPeriod.value.toUpperCase() : 'PM';
+}
+
+updateCountdown();
+updateChicagoAMPM();
+setInterval(updateCountdown, 1000);
+setInterval(updateChicagoAMPM, 30000);
+
+soundBtn.addEventListener('click', async () => {
+  if (!video) return;
+  video.muted = !video.muted;
+  try { await video.play(); } catch (e) {}
+  soundBtn.textContent = video.muted ? '◂ TAP FOR SOUND' : '◂ SOUND ON';
+});
