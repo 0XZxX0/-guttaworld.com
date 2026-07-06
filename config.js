@@ -2,7 +2,7 @@
 // Add more MP4 music/video links inside videoPlaylist.
 // Put a comma after every link except the last one.
 window.GUTTA_CONFIG = {
-  launchDate: "2026-10-21T20:00:00-05:00",
+  launchDate: "2026-07-30T20:00:00-05:00",
 
   videoPlaylist: [
     "https://r2.fivemanage.com/DO9KoRL23hOK71rF7NFU8/lovesosa.mp4",
