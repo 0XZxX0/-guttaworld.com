@@ -12,6 +12,6 @@ window.GUTTA_CONFIG = {
     "https://r2.fivemanage.com/DO9KoRL23hOK71rF7NFU8/YoungPappy-Killa(OfficialMusicVideo)-TFGEnt(800p)(1).mp4",
   ],
 
-  randomStart: false,
+  randomStart: true,
   startMuted: true
 };
