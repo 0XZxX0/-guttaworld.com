@@ -13,5 +13,5 @@ window.GUTTA_CONFIG = {
   ],
 
   randomStart: true,
-  startMuted: true
+  startMuted: false
 };
